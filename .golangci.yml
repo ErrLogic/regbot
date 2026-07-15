@@ -15,6 +15,10 @@ linters:
       rules:
         - name: exported
           severity: warning
+          # Keep documented names (OTPProvider, GmailAppProvider) that the PRD,
+          # ARCHITECTURE, and CLAUDE docs use as the project's vocabulary.
+          arguments:
+            - "disableStutteringCheck"
         - name: package-comments
         - name: context-as-argument
         - name: error-return

@@ -168,9 +168,10 @@ element used by later flows exists in the JSON (even if selector is a TODO).
 
 ---
 
-## Phase 5 — OTPProvider Interface & GmailAppProvider
+## Phase 5 — OTPProvider Interface & GmailAppProvider ✅ DONE
 
 **Depends on:** Phases 3, 4.
+**Status:** Completed 2026-07-16. `internal/otp` defines the `OTPProvider` interface; `internal/otp/gmailapp` implements `GmailAppProvider` (launch Gmail, normalise to inbox, pull-to-refresh, poll for allow-listed sender, open, regex-extract, restore app) reusing the shared driver — no second session. Pure `extractCode`/`senderMatches` unit-tested; `GetCode` covered end-to-end against a simulated Appium server incl. timeout+screenshot-sink and ctx-cancel. `internal/otp/otptest.Mock` added for flow tests. Build/vet/lint clean.
 
 ```text
 Define the OTP interface and implement the Gmail-app provider per ARCHITECTURE.md
