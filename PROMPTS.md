@@ -259,9 +259,10 @@ stops before final submission; flow compiles against real driver + provider.
 
 ---
 
-## Phase 8 — TikTok Flow
+## Phase 8 — TikTok Flow ✅ DONE
 
 **Depends on:** Phase 6 (mirror Phase 7).
+**Status:** Completed 2026-07-16. `internal/flows/tiktok.go` implements `TikTokFlow.Register` with TikTok's screen order (sign up → phone/email → email tab → birthday → email → send code → GetCode → enter code → submit → password → nickname → skip interests/contacts → finalise/dry-run), all via locator names. Table-driven test (shared recording driver/provider) asserts GetCode-after-Send-code ordering and dry-run skips the final submit. Build/vet/lint clean.
 
 ```text
 Implement internal/flows/tiktok.go per FR-4 (PRD.md), mirroring the Instagram flow

@@ -61,7 +61,7 @@ func (p *recProvider) GetCode(_ context.Context, _ string, _ time.Duration) (str
 	return p.code, nil
 }
 
-func instagramDriver(t *testing.T, rec *flowRecorder) *appium.Driver {
+func recordingDriver(t *testing.T, rec *flowRecorder) *appium.Driver {
 	t.Helper()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -146,7 +146,7 @@ func TestInstagramRegister(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := &flowRecorder{takenTimes: tt.takenTimes}
-			driver := instagramDriver(t, rec)
+			driver := recordingDriver(t, rec)
 			provider := &recProvider{rec: rec, code: "483920"}
 			loc := loadInstagramLocators(t)
 
