@@ -2,7 +2,7 @@
 
 Prompts for building RegBot with Claude Code, one phase at a time (make sure you stop after one phase and mark this docs on the phase as done).
 Each phase is self-contained, states its dependencies, and ends with a
-**Definition of Done** you can verify before moving on. Run them in order.
+**Definition of Done** i need verify before moving on. Run them in order.
 
 > Source of truth: [`PRD.md`](./PRD.md) (requirements), [`ARCHITECTURE.md`](./ARCHITECTURE.md)
 > (design), [`CLAUDE.md`](./CLAUDE.md) (conventions). Every prompt below assumes
@@ -12,8 +12,8 @@ Each phase is self-contained, states its dependencies, and ends with a
 
 ## How to use these prompts
 
-1. Ensure `PRD.md`, `ARCHITECTURE.md`, and `CLAUDE.md` are readable in the repo.
-2. Paste one phase prompt at a time.
+1. Ensure you read all `PRD.md`, `ARCHITECTURE.md`, and `CLAUDE.md` in the repo.
+2. Run one phase prompt at a time.
 3. After each phase: run `go build ./...`, `go vet ./...`, `go test ./...`, and
    `golangci-lint run`. Fix before continuing.
 4. Commit at the end of each green phase.
