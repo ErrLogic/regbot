@@ -54,9 +54,10 @@ Definition of Done: `go build ./...` succeeds; `./regbot --help` shows the
 
 ---
 
-## Phase 1 — Configuration & Logging
+## Phase 1 — Configuration & Logging ✅ DONE
 
 **Depends on:** Phase 0.
+**Status:** Completed 2026-07-16. `internal/config` implements `Load` (viper + REGBOT_ env overrides + defaults), `Validate` (field-named errors), and `NewLogger`/`Redacted`; sample `config.yaml` added; table-driven tests pass; build/vet/lint clean.
 
 ```text
 Implement internal/config and a shared logger, following FR-8 (PRD.md) and the

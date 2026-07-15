@@ -1,0 +1,48 @@
+# RegBot sample configuration. Copy to config.local.yaml for real use and keep
+# real email addresses/credentials out of version control.
+#
+# Environment overrides use the REGBOT_ prefix with underscores for nested keys,
+# e.g. REGBOT_APPIUM_SERVER_URL=http://127.0.0.1:4723
+
+appium:
+  server_url: "http://127.0.0.1:4723"
+  new_command_timeout: 120s
+
+device:
+  platform_name: "Android"
+  device_name: "emulator-5554"
+  automation_name: "UiAutomator2"
+  udid: ""                       # optional; pins a specific device
+
+apps:
+  instagram_package: "com.instagram.android"
+  instagram_activity: "com.instagram.mainactivity.MainActivity"
+  tiktok_package: "com.zhiliaoapp.musically"
+  gmail_package: "com.google.android.gm"
+
+email:
+  address: ""                          # explicit address, OR set base_address:
+  base_address: "myaccount@gmail.com"  # for +alias generation
+  alias_tag_prefix: "reg"              # -> myaccount+reg<rand>@gmail.com
+
+otp:
+  sender_allowlist: ["instagram", "tiktok", "no-reply"]
+  code_regex: "\\d{6}"
+  wait_timeout: 60s
+  poll_interval: 5s
+
+account:
+  password_length: 16
+  username_prefix: "user"
+
+timeouts:
+  element_wait: 15s
+  step_retry: 2
+
+paths:
+  locators_dir: "./locators"
+  artifacts_dir: "./artifacts"
+
+logging:
+  level: "info"
+  file: "./regbot.log"
