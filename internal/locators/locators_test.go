@@ -165,6 +165,18 @@ func TestResolveFallsBackToSecondCandidate(t *testing.T) {
 	}
 }
 
+func TestResolveRespectsContextCancel(t *testing.T) {
+	dir := writeLocator(t, "instagram", validLocatorJSON)
+	m, _ := Load(dir, "instagram")
+	d := newElementServer(t, "never-matches") // every lookup 404s
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := m.Resolve(ctx, d, "email_field", 5*time.Second); err == nil {
+		t.Fatal("expected error under cancelled context")
+	}
+}
+
 func TestResolveUnknownElement(t *testing.T) {
 	dir := writeLocator(t, "instagram", validLocatorJSON)
 	m, _ := Load(dir, "instagram")

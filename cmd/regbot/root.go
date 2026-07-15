@@ -35,6 +35,7 @@ func newRootCmd() *cobra.Command {
 	pf.BoolVar(&flags.dryRun, "dry-run", false, "validate and connect, but do not submit the final registration")
 
 	root.AddCommand(newRegisterCmd(flags))
+	root.AddCommand(newLocatorsCmd(flags))
 
 	return root
 }

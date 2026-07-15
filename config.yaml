@@ -37,7 +37,8 @@ account:
 
 timeouts:
   element_wait: 15s
-  step_retry: 2
+  step_retry: 2       # retries per step (attempts = step_retry + 1)
+  step_backoff: 1s    # delay between step attempts
 
 paths:
   locators_dir: "./locators"

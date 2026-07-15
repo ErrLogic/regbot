@@ -268,13 +268,17 @@ func flowConfig(cfg config.Config, dryRun bool) flows.FlowConfig {
 	if cfg.Timeouts.ElementWait < probe {
 		probe = cfg.Timeouts.ElementWait
 	}
+	backoff := cfg.Timeouts.StepBackoff
+	if backoff <= 0 {
+		backoff = time.Second
+	}
 	return flows.FlowConfig{
 		PasswordLength: cfg.Account.PasswordLength,
 		UsernamePrefix: cfg.Account.UsernamePrefix,
 		ElementWait:    cfg.Timeouts.ElementWait,
 		ProbeWait:      probe,
 		OTPTimeout:     cfg.OTP.WaitTimeout,
-		Retry:          flows.RetryPolicy{Attempts: cfg.Timeouts.StepRetry + 1, Backoff: time.Second},
+		Retry:          flows.RetryPolicy{Attempts: cfg.Timeouts.StepRetry + 1, Backoff: backoff},
 		DryRun:         dryRun,
 	}
 }

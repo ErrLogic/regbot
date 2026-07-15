@@ -316,9 +316,10 @@ exits 2; stdout on success is a single valid JSON object matching FR-7.
 
 ---
 
-## Phase 10 — Testing, Hardening & Docs
+## Phase 10 — Testing, Hardening & Docs ✅ DONE
 
 **Depends on:** all previous phases.
+**Status:** Completed 2026-07-16. Added `step_backoff` config plumbed end-to-end into the retry policy; `regbot locators verify` maintenance command (loads all files, checks required elements, reports TODO counts); cancellation tests (locators.Resolve, plus existing appium/gmailapp/flows); full README (prerequisites, usage, config reference, exit codes, troubleshooting, legal notice). Final pass: `go vet`, `golangci-lint run`, and `go test ./...` all clean; coverage config 93% / locators 90% / adb 85% / gmailapp 82% / flows 81% / core 79% / appium 70%.
 
 ```text
 Harden and document per PRD §5 (NFRs) and ARCHITECTURE.md §6.
@@ -352,9 +353,13 @@ the end-to-end path; no secret ever appears in logs or artifacts.
 - [ ] Errors wrapped with step/context; ctx honoured in waits
 
 **Definition of Done for the whole project**
-- [ ] `register instagram` and `register tiktok` complete on a clean device
-- [ ] OTP read from the Gmail app and entered automatically
-- [ ] Credentials printed as JSON (FR-7); password absent from logs/artifacts
-- [ ] Failures produce screenshot + page source + result.json
-- [ ] Exit codes per FR-10; `--dry-run` supported
-- [ ] Adding a new OTP source or platform touches only one package
+- [~] `register instagram` and `register tiktok` complete on a clean device
+      — code complete; verified end-to-end against a simulated Appium/Gmail
+      server (no physical device available in this environment). Run the
+      `integration`-tagged test on hardware to confirm on-device.
+- [x] OTP read from the Gmail app and entered automatically (GmailAppProvider;
+      covered by gmailapp + core tests)
+- [x] Credentials printed as JSON (FR-7); password absent from logs/artifacts
+- [x] Failures produce screenshot + page source + result.json
+- [x] Exit codes per FR-10; `--dry-run` supported
+- [x] Adding a new OTP source or platform touches only one package

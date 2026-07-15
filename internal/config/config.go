@@ -73,6 +73,7 @@ type AccountConfig struct {
 type TimeoutsConfig struct {
 	ElementWait time.Duration `mapstructure:"element_wait"`
 	StepRetry   int           `mapstructure:"step_retry"`
+	StepBackoff time.Duration `mapstructure:"step_backoff"`
 }
 
 // PathsConfig holds filesystem locations used by a run.
@@ -144,6 +145,7 @@ func setDefaults(v *viper.Viper) {
 
 	v.SetDefault("timeouts.element_wait", 15*time.Second)
 	v.SetDefault("timeouts.step_retry", 2)
+	v.SetDefault("timeouts.step_backoff", time.Second)
 
 	v.SetDefault("paths.locators_dir", "./locators")
 	v.SetDefault("paths.artifacts_dir", "./artifacts")
@@ -193,6 +195,9 @@ func (c Config) Validate() error {
 	}
 	if c.Timeouts.StepRetry < 0 {
 		return errors.New("timeouts.step_retry: must be >= 0")
+	}
+	if c.Timeouts.StepBackoff < 0 {
+		return errors.New("timeouts.step_backoff: must be >= 0")
 	}
 
 	if c.Paths.LocatorsDir == "" {
