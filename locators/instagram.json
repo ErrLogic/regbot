@@ -36,6 +36,9 @@
     "birthday_next": [
       { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")", "todo": "verify birthday screen" }
     ],
+    "skip_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Skip\")", "todo": "verify optional-screen skip labels (Skip / Not now)" }
+    ],
     "finish_button": [
       { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Sign up\")", "todo": "verify final submit label" }
     ]

@@ -232,9 +232,10 @@ credential generator output satisfies the configured policy and is never logged.
 
 ---
 
-## Phase 7 — Instagram Flow
+## Phase 7 — Instagram Flow ✅ DONE
 
 **Depends on:** Phase 6.
+**Status:** Completed 2026-07-16. `internal/flows/instagram.go` implements `InstagramFlow.Register` as a named-step sequence (create account → email → next → confirm-email → GetCode → enter code → full name → password → unique username with taken-retry → birthday → dismiss optional → finalise/dry-run), referencing only locator names. Added `FlowConfig` and a `skip_button` locator. Table-driven test (permissive httptest driver + recording OTP provider) asserts step order, GetCode-after-Next, username retry, and dry-run skips submit. Build/vet/lint clean.
 
 ```text
 Implement internal/flows/instagram.go per FR-3 (PRD.md). Use only locator names

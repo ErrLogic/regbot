@@ -29,6 +29,27 @@ type Account struct {
 	Status    string    `json:"status"`
 }
 
+// FlowConfig holds the per-run settings a platform flow needs. It is set on the
+// flow value by the core; the runtime driver/provider/email/locators are passed
+// to Register.
+type FlowConfig struct {
+	// PasswordLength is the generated-password length.
+	PasswordLength int
+	// UsernamePrefix seeds generated usernames.
+	UsernamePrefix string
+	// ElementWait bounds each UI element lookup.
+	ElementWait time.Duration
+	// ProbeWait bounds best-effort presence checks (optional screens, taken
+	// username), kept short so absent elements don't stall the flow.
+	ProbeWait time.Duration
+	// OTPTimeout bounds waiting for the verification code.
+	OTPTimeout time.Duration
+	// Retry is the per-step retry policy.
+	Retry RetryPolicy
+	// DryRun stops the flow before the final submission.
+	DryRun bool
+}
+
 // PlatformFlow registers a single account on one platform. The OTP provider is
 // injected by the caller so flows never talk to Gmail directly.
 type PlatformFlow interface {
