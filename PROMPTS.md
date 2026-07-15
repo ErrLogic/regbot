@@ -200,9 +200,10 @@ the Phase 3 driver; the provider never opens a second Appium session.
 
 ---
 
-## Phase 6 — Flow & Step Engine
+## Phase 6 — Flow & Step Engine ✅ DONE
 
 **Depends on:** Phases 3, 4, 5.
+**Status:** Completed 2026-07-16. `internal/flows` defines Account/Platform/PlatformFlow; `runSteps` (ordered, per-step retry+backoff, ctx-aware, wraps error with step name, notifies FailureSink); `ArtifactSink` writes screenshot+page-source per run-id/step; credential helpers (GeneratePassword with class guarantees, GenerateUsername, UniqueUsername retry hook, AdultBirthday, GenerateFullName) using crypto/rand; UI helpers tapByLocator/typeByLocator/dismissIfPresent/isPresent. Tests cover order/retry/artifact/cancel and credential policy. Build/vet/lint clean.
 
 ```text
 Implement the flow abstractions and the shared step runner per ARCHITECTURE.md
