@@ -109,9 +109,10 @@ test; errors clearly distinguish "no device" vs "unauthorised" vs "multiple".
 
 ---
 
-## Phase 3 — Appium HTTP Client
+## Phase 3 — Appium HTTP Client ✅ DONE
 
 **Depends on:** Phase 1.
+**Status:** Completed 2026-07-16. `internal/appium` implements a minimal W3C/Appium JSON client (Driver, Element, Capabilities) with FindElement/WaitForElement, Click/SendKeys/GetText, Swipe/PressBack/LaunchApp, Screenshot/PageSource, Set/GetClipboard, Quit, and sentinel errors (ElementNotFound/SessionExpired/Timeout); httptest-based tests pass with no real server and no third-party Appium dep.
 
 ```text
 Implement internal/appium — a minimal WebDriver/Appium JSON client (no external
