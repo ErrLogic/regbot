@@ -10,7 +10,11 @@ import (
 
 	"github.com/ErrLogic/regbot/internal/appium"
 	"github.com/ErrLogic/regbot/internal/locators"
+	"github.com/ErrLogic/regbot/internal/otp"
 )
+
+// RequiredLocators are the Gmail element names this provider depends on.
+var RequiredLocators = []string{"message_list", "email_row", "sender", "message_body"}
 
 // Default timings used when the corresponding Config field is zero.
 const (
@@ -111,7 +115,7 @@ func (p *GmailAppProvider) GetCode(ctx context.Context, targetEmail string, time
 			return "", p.failf(ctx, "otp: %v", fatal)
 		}
 		if time.Now().After(deadline) {
-			return "", p.failf(ctx, "otp: verification code for %s not found within %s", targetEmail, timeout)
+			return "", p.failf(ctx, "otp: verification code for %s not found within %s: %w", targetEmail, timeout, otp.ErrCodeNotFound)
 		}
 		select {
 		case <-ctx.Done():

@@ -281,9 +281,10 @@ Definition of Done: unit test passes; selectors externalised; dry-run honoured.
 
 ---
 
-## Phase 9 — Core Orchestrator & CLI Wiring
+## Phase 9 — Core Orchestrator & CLI Wiring ✅ DONE
 
 **Depends on:** Phases 2, 3, 5, 7, 8.
+**Status:** Completed 2026-07-16. `internal/core.RegistrationService.Register` does ADB pre-flight, opens one Appium session (deferred Quit), loads+Requires target/Gmail locators, wires the GmailAppProvider + ArtifactSink, runs the selected flow, and writes a password-free result.json (+ artifacts on failure). `ResolveEmail` supports address/+alias. `cmd/regbot` implements `register instagram|tiktok`, Load+Validate, logger, SIGINT ctx, prints the FR-7 Account JSON to stdout, and maps FR-10 exit codes (0/1/2/3/130). Core unit tests (fake ADB + simulated Appium/Gmail) cover dry-run success, TikTok, not-installed, UI-failure-artifacts, and OTP-timeout; cmd tests cover exit-code mapping. Integration smoke test behind `//go:build integration`. Build/vet/lint clean.
 
 ```text
 Implement internal/core and finish cmd/regbot per ARCHITECTURE.md §2.1–2.2 and
