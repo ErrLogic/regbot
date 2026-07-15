@@ -25,16 +25,17 @@ hard-code locators; never log the generated password; keep `cmd/regbot` thin.
 
 ---
 
-## Phase 0 — Project Scaffolding
+## Phase 0 — Project Scaffolding ✅ DONE
 
 **Depends on:** nothing.
+**Status:** Completed 2026-07-16. `go build ./...`, `go vet ./...`, and `gofmt -l` clean; `./regbot --help` lists the `register` group.
 
 ```text
 Scaffold the RegBot Go module per ARCHITECTURE.md and CLAUDE.md. Do NOT implement
 business logic yet — only structure, stubs, and tooling.
 
 Tasks:
-1. Initialise `go.mod` (module `github.com/<me>/regbot`, Go 1.22 or newer) and add deps:
+1. Initialise `go.mod` (module `github.com/ErrLogic/regbot`, Go 1.22 or newer) and add deps:
    cobra, viper, zap.
 2. Create the directory tree from CLAUDE.md: cmd/regbot; internal/{adb,appium,
    config,core,flows,locators,otp,otp/gmailapp}; locators/.
