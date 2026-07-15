@@ -83,9 +83,10 @@ naming the offending field; running with a valid config logs a startup line.
 
 ---
 
-## Phase 2 — ADB Pre-flight Helpers
+## Phase 2 — ADB Pre-flight Helpers ✅ DONE
 
 **Depends on:** Phase 1.
+**Status:** Completed 2026-07-16. `internal/adb` implements `CheckDevice`, `IsInstalled`, `InstallAPK` over a `commandRunner` seam, configurable adb path + serial, and sentinel errors (`ErrNoDevice`/`ErrUnauthorized`/`ErrMultipleDevices`); 13 tests pass with a mocked runner; build/vet/lint clean.
 
 ```text
 Implement internal/adb per ARCHITECTURE.md §2.6. Shell out to `adb`; do not use it
