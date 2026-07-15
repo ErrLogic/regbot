@@ -139,9 +139,10 @@ ctx and returns wrapped errors; no third-party Appium dependency was added.
 
 ---
 
-## Phase 4 — Locator Schema, Loader & Validation
+## Phase 4 — Locator Schema, Loader & Validation ✅ DONE
 
 **Depends on:** Phase 1.
+**Status:** Completed 2026-07-16. `internal/locators` implements Selector/Map, `Load` (validates JSON + `by` strategy), `Require` (names missing elements + file), `Candidates`, and `Resolve` (ordered first-match via WaitForElement, bounded timeout). Instagram/TikTok/Gmail JSON fleshed out with named elements (selectors marked TODO); tests incl. a shipped-files validity check all pass.
 
 ```text
 Implement internal/locators per ARCHITECTURE.md §2.7 and FR-6 (PRD.md).

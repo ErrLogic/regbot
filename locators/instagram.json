@@ -1,4 +1,43 @@
 {
-  "version": "instagram-placeholder",
-  "elements": {}
+  "version": "instagram-placeholder-v1",
+  "elements": {
+    "create_new_account": [
+      { "by": "id", "selector": "com.instagram.android:id/sign_up_with_email", "todo": "verify resource-id on current IG build" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Create new account\")" }
+    ],
+    "email_field": [
+      { "by": "id", "selector": "com.instagram.android:id/email_field", "todo": "verify resource-id" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.EditText\")" }
+    ],
+    "next_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")", "todo": "verify label" }
+    ],
+    "confirm_email_screen": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Confirm\")", "todo": "verify Confirm Your Email header" }
+    ],
+    "confirmation_code_field": [
+      { "by": "id", "selector": "com.instagram.android:id/confirmation_field", "todo": "verify resource-id" }
+    ],
+    "confirm_code_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")", "todo": "verify label" }
+    ],
+    "full_name_field": [
+      { "by": "id", "selector": "com.instagram.android:id/full_name", "todo": "verify resource-id" }
+    ],
+    "password_field": [
+      { "by": "id", "selector": "com.instagram.android:id/password", "todo": "verify resource-id" }
+    ],
+    "username_field": [
+      { "by": "id", "selector": "com.instagram.android:id/username", "todo": "verify resource-id" }
+    ],
+    "username_taken_error": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"username isn’t available\")", "todo": "verify error copy" }
+    ],
+    "birthday_next": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")", "todo": "verify birthday screen" }
+    ],
+    "finish_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Sign up\")", "todo": "verify final submit label" }
+    ]
+  }
 }
