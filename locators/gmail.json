@@ -1,0 +1,24 @@
+{
+  "version": "gmail-placeholder-v1",
+  "elements": {
+    "message_list": [
+      { "by": "id", "selector": "com.google.android.gm:id/thread_list_view", "todo": "verify resource-id" }
+    ],
+    "email_row": [
+      { "by": "id", "selector": "com.google.android.gm:id/conversation_list_item_view", "todo": "verify resource-id for list items" }
+    ],
+    "sender": [
+      { "by": "id", "selector": "com.google.android.gm:id/senders", "todo": "verify sender text view id" }
+    ],
+    "subject": [
+      { "by": "id", "selector": "com.google.android.gm:id/subject", "todo": "verify subject text view id" }
+    ],
+    "message_body": [
+      { "by": "id", "selector": "com.google.android.gm:id/mail_body", "todo": "verify body/WebView id" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.webkit.WebView\")" }
+    ],
+    "dismiss_dialog": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Got it\")", "todo": "verify interstitial dismiss labels (Got it / OK / Dismiss)" }
+    ]
+  }
+}

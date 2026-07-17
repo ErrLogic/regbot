@@ -1,0 +1,36 @@
+version: "2"
+
+run:
+  timeout: 3m
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - revive
+    - staticcheck
+  settings:
+    revive:
+      rules:
+        - name: exported
+          severity: warning
+          # Keep documented names (OTPProvider, GmailAppProvider) that the PRD,
+          # ARCHITECTURE, and CLAUDE docs use as the project's vocabulary.
+          arguments:
+            - "disableStutteringCheck"
+        - name: package-comments
+        - name: context-as-argument
+        - name: error-return
+        - name: error-strings
+
+formatters:
+  enable:
+    - gofmt
+  settings:
+    gofmt:
+      simplify: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

@@ -1,0 +1,28 @@
+# Compiled binary
+/regbot
+
+# Run artifacts (screenshots, page source, result.json)
+/artifacts/
+
+# Logs
+*.log
+
+# Local configuration overrides (never commit real emails/credentials)
+config.local.yaml
+*.local.yaml
+
+# Go build/test caches
+/vendor/
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/
+
+# Internal design docs and AI-assistant scaffolding (kept local, not published)
+ARCHITECTURE.md
+CLAUDE.md
+PRD.md
+PROMPTS.md
+.claude/
+CLAUDE.local.md

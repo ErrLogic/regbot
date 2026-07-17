@@ -1,0 +1,42 @@
+{
+  "version": "tiktok-placeholder-v1",
+  "elements": {
+    "sign_up_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Sign up\")", "todo": "verify label" }
+    ],
+    "use_phone_or_email": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Use phone or email\")", "todo": "verify label" }
+    ],
+    "email_tab": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Email\")", "todo": "verify tab label" }
+    ],
+    "birthday_next": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")", "todo": "verify birthday screen" }
+    ],
+    "email_field": [
+      { "by": "id", "selector": "com.zhiliaoapp.musically:id/email_field", "todo": "verify resource-id" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.EditText\")" }
+    ],
+    "send_code_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Send code\")", "todo": "verify label" }
+    ],
+    "code_field": [
+      { "by": "id", "selector": "com.zhiliaoapp.musically:id/code_field", "todo": "verify resource-id" }
+    ],
+    "next_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")", "todo": "verify label" }
+    ],
+    "password_field": [
+      { "by": "id", "selector": "com.zhiliaoapp.musically:id/password_field", "todo": "verify resource-id" }
+    ],
+    "nickname_field": [
+      { "by": "id", "selector": "com.zhiliaoapp.musically:id/nickname_field", "todo": "verify resource-id" }
+    ],
+    "skip_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Skip\")", "todo": "verify interests/contacts skip" }
+    ],
+    "finish_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Sign up\")", "todo": "verify final submit label" }
+    ]
+  }
+}
