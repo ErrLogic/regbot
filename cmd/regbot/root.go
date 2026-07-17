@@ -24,7 +24,7 @@ func newRootCmd() *cobra.Command {
 			"the target app via Appium and reads the verification code directly from\n" +
 			"the on-device Gmail app.\n\n" +
 			"Educational use only: automated account creation violates the Terms of\n" +
-			"Service of Instagram and TikTok. See PRD.md §7.",
+			"Service of Instagram and TikTok. See README.md.",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}

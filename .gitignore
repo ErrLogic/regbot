@@ -18,3 +18,11 @@ config.local.yaml
 .DS_Store
 .idea/
 .vscode/
+
+# Internal design docs and AI-assistant scaffolding (kept local, not published)
+ARCHITECTURE.md
+CLAUDE.md
+PRD.md
+PROMPTS.md
+.claude/
+CLAUDE.local.md

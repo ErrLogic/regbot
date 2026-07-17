@@ -12,7 +12,7 @@ import (
 )
 
 // Config is the root configuration for a RegBot run. It mirrors the annotated
-// config.yaml documented in ARCHITECTURE.md §2.7.
+// config.yaml at the repository root.
 type Config struct {
 	Appium   AppiumConfig   `mapstructure:"appium"`
 	Device   DeviceConfig   `mapstructure:"device"`
