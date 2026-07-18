@@ -1,24 +1,35 @@
 {
-  "version": "gmail-placeholder-v1",
+  "version": "gmail-android16-v3",
   "elements": {
     "message_list": [
-      { "by": "id", "selector": "com.google.android.gm:id/thread_list_view", "todo": "verify resource-id" }
+      { "by": "-android uiautomator", "selector": "new UiSelector().resourceId(\"com.google.android.gm:id/open_search_bar_text_view\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().scrollable(true)" },
+      { "by": "id", "selector": "com.google.android.gm:id/thread_list_view" },
+      { "by": "id", "selector": "com.google.android.gm:id/conversation_list" }
     ],
     "email_row": [
-      { "by": "id", "selector": "com.google.android.gm:id/conversation_list_item_view", "todo": "verify resource-id for list items" }
+      { "by": "-android uiautomator", "selector": "new UiSelector().clickable(true).className(\"android.view.View\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().clickable(true)" }
     ],
     "sender": [
-      { "by": "id", "selector": "com.google.android.gm:id/senders", "todo": "verify sender text view id" }
-    ],
-    "subject": [
-      { "by": "id", "selector": "com.google.android.gm:id/subject", "todo": "verify subject text view id" }
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"@\").className(\"android.widget.TextView\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"@\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"TikTok\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Instagram\")" },
+      { "by": "id", "selector": "com.google.android.gm:id/senders" }
     ],
     "message_body": [
-      { "by": "id", "selector": "com.google.android.gm:id/mail_body", "todo": "verify body/WebView id" },
-      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.webkit.WebView\")" }
+      { "by": "-android uiautomator", "selector": "new UiSelector().scrollable(true)" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.webkit.WebView\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.TextView\").scrollable(true)" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.TextView\")" },
+      { "by": "id", "selector": "com.google.android.gm:id/mail_body" }
     ],
     "dismiss_dialog": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Got it\")", "todo": "verify interstitial dismiss labels (Got it / OK / Dismiss)" }
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Got it\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"OK\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Dismiss\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Close\")" }
     ]
   }
 }

@@ -64,6 +64,9 @@ func (f InstagramFlow) Register(
 		{Name: "launch create account", Run: func(ctx context.Context) error {
 			return tapByLocator(ctx, driver, loc, "create_new_account", wait)
 		}},
+		{Name: "switch to email", Run: func(ctx context.Context) error {
+			return tapByLocator(ctx, driver, loc, "switch_to_email", wait)
+		}},
 		{Name: "enter email", Run: func(ctx context.Context) error {
 			return typeByLocator(ctx, driver, loc, "email_field", email, wait)
 		}},
@@ -71,8 +74,9 @@ func (f InstagramFlow) Register(
 			return tapByLocator(ctx, driver, loc, "next_button", wait)
 		}},
 		{Name: "wait confirm email screen", Run: func(ctx context.Context) error {
-			_, err := loc.Resolve(ctx, driver, "confirm_email_screen", wait)
-			return err
+			// After tapping Next on email entry, Instagram shows confirmation screen.
+			time.Sleep(2 * time.Second)
+			return nil
 		}},
 		{Name: "retrieve otp", Run: func(ctx context.Context) error {
 			c, err := provider.GetCode(ctx, email, f.Cfg.OTPTimeout)

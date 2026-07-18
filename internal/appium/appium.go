@@ -47,9 +47,17 @@ type Capabilities struct {
 	AppPackage        string
 	AppActivity       string
 	NewCommandTimeout time.Duration
+	// NoReset keeps the app's existing state (logged-in session) instead of
+	// resetting it. Use true for actions on an existing account (like, comment,
+	// profile, post, live); leave false for registration, which needs the app
+	// on its logged-out welcome screen.
+	NoReset bool
 }
 
-// alwaysMatch renders the capabilities as a W3C alwaysMatch map.
+// alwaysMatch renders the capabilities as a W3C alwaysMatch map. It includes a
+// set of UiAutomator2 stability options that reduce mid-session instrumentation
+// crashes on long flows (the driver stays resident instead of being torn down
+// between commands, and the hidden-API policy error is ignored).
 func (c Capabilities) alwaysMatch() map[string]any {
 	m := map[string]any{"platformName": nonEmpty(c.PlatformName, "Android")}
 	setIf(m, "appium:automationName", c.AutomationName)
@@ -60,6 +68,23 @@ func (c Capabilities) alwaysMatch() map[string]any {
 	if c.NewCommandTimeout > 0 {
 		m["appium:newCommandTimeout"] = int(c.NewCommandTimeout.Seconds())
 	}
+
+	// Stability options — reduce mid-session UiAutomator2 crashes without changing
+	// app-launch/reset semantics.
+	m["appium:disableWindowAnimation"] = true
+	m["appium:ignoreHiddenApiPolicyError"] = true
+	m["appium:uiautomator2ServerLaunchTimeout"] = 60000
+	m["appium:uiautomator2ServerInstallTimeout"] = 60000
+	m["appium:uiautomator2ServerReadTimeout"] = 60000
+	m["appium:autoGrantPermissions"] = true
+
+	// App-state control. Registration needs a clean, logged-out app (noReset
+	// false, the default). Actions on an existing account set NoReset=true to
+	// preserve the logged-in session. forceAppLaunch ensures the target app is
+	// brought to the front on session start.
+	m["appium:noReset"] = c.NoReset
+	m["appium:forceAppLaunch"] = true
+
 	return m
 }
 
@@ -187,6 +212,28 @@ func (d *Driver) Swipe(ctx context.Context, x1, y1, x2, y2, steps int) error {
 	}
 	if err := d.do(ctx, http.MethodPost, d.path("/actions"), body, nil); err != nil {
 		return fmt.Errorf("swipe: %w", err)
+	}
+	return nil
+}
+
+// Tap performs a touch tap at screen coordinates (x, y) using the W3C actions API.
+func (d *Driver) Tap(ctx context.Context, x, y int) error {
+	body := map[string]any{
+		"actions": []any{
+			map[string]any{
+				"type": "pointer", "id": "finger1",
+				"parameters": map[string]any{"pointerType": "touch"},
+				"actions": []any{
+					map[string]any{"type": "pointerMove", "duration": 0, "x": x, "y": y},
+					map[string]any{"type": "pointerDown", "button": 0},
+					map[string]any{"type": "pause", "duration": 80},
+					map[string]any{"type": "pointerUp", "button": 0},
+				},
+			},
+		},
+	}
+	if err := d.do(ctx, http.MethodPost, d.path("/actions"), body, nil); err != nil {
+		return fmt.Errorf("tap: %w", err)
 	}
 	return nil
 }

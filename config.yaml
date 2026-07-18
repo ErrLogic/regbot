@@ -6,7 +6,7 @@
 
 appium:
   server_url: "http://127.0.0.1:4723"
-  new_command_timeout: 120s
+  new_command_timeout: 300s   # keep the UiAutomator2 session alive across full flows (incl. OTP waits)
 
 device:
   platform_name: "Android"
@@ -17,7 +17,7 @@ device:
 apps:
   instagram_package: "com.instagram.android"
   instagram_activity: "com.instagram.mainactivity.MainActivity"
-  tiktok_package: "com.zhiliaoapp.musically"
+  tiktok_package: "com.ss.android.ugc.trill"
   gmail_package: "com.google.android.gm"
 
 email:
@@ -34,6 +34,7 @@ otp:
 account:
   password_length: 16
   username_prefix: "user"
+  use_google_sso: false   # TikTok: register via on-device Google account (skips email OTP)
 
 timeouts:
   element_wait: 15s
@@ -47,3 +48,24 @@ paths:
 logging:
   level: "info"
   file: "./regbot.log"
+
+# --- Server mode configuration (used by regbot-server + regbot-worker) ---
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  jwt_secret: ""          # set via REGBOT_SERVER_JWT_SECRET env var (required for server)
+  shutdown_timeout: 10s
+
+db:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "postgres"
+  database: "regbot"
+  sslmode: "disable"
+
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 0

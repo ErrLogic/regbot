@@ -3,9 +3,9 @@ package flows
 // InstagramLocatorNames are the element names the Instagram flow depends on.
 var InstagramLocatorNames = []string{
 	"create_new_account",
+	"switch_to_email",
 	"email_field",
 	"next_button",
-	"confirm_email_screen",
 	"confirmation_code_field",
 	"confirm_code_button",
 	"full_name_field",
@@ -19,7 +19,13 @@ var InstagramLocatorNames = []string{
 
 // TikTokLocatorNames are the element names the TikTok flow depends on.
 var TikTokLocatorNames = []string{
+	"dismiss_sheet",
+	"agree_terms",
+	"allow_button",
+	"login_button",
 	"sign_up_button",
+	"sso_continue",
+	"sso_account_row",
 	"use_phone_or_email",
 	"email_tab",
 	"birthday_next",

@@ -183,3 +183,80 @@ func (c *Client) InstallAPK(ctx context.Context, apkPath string) error {
 	}
 	return nil
 }
+
+// ClearApp clears all data for a package (`adb shell pm clear <pkg>`), returning
+// it to a fresh-install state. Used before registration so the app opens on its
+// logged-out welcome screen regardless of any prior session.
+func (c *Client) ClearApp(ctx context.Context, pkg string) error {
+	if pkg == "" {
+		return errors.New("adb: empty package name")
+	}
+	out, err := c.runner.Run(ctx, c.adbPath, c.args("shell", "pm", "clear", pkg)...)
+	text := strings.TrimSpace(string(out))
+	if err != nil {
+		return fmt.Errorf("adb pm clear %q: %w: %s", pkg, err, text)
+	}
+	if !strings.Contains(text, "Success") {
+		return fmt.Errorf("adb pm clear %q failed: %s", pkg, text)
+	}
+	return nil
+}
+
+// Devices returns the raw output of `adb devices`.
+func (c *Client) Devices(ctx context.Context) (string, error) {
+	out, err := c.runner.Run(ctx, c.adbPath, c.args("devices")...)
+	if err != nil {
+		return "", fmt.Errorf("adb devices: %w: %s", err, strings.TrimSpace(string(out)))
+	}
+	return string(out), nil
+}
+
+// GetProp returns the value of a device system property (adb shell getprop <key>).
+func (c *Client) GetProp(ctx context.Context, serial, key string) (string, error) {
+	args := []string{"-s", serial, "shell", "getprop", key}
+	out, err := c.runner.Run(ctx, c.adbPath, args...)
+	if err != nil {
+		return "", fmt.Errorf("adb getprop %s: %w", key, err)
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// isNetworkSerial reports whether serial looks like a network/TLS address that
+// `adb connect` can act on (contains ':' for host:port or the mDNS TLS suffix).
+func isNetworkSerial(serial string) bool {
+	return strings.Contains(serial, ":") || strings.Contains(serial, "_adb-tls-connect._tcp")
+}
+
+// Connect runs `adb connect <serial>` for a wireless/TLS device. It is a no-op
+// for USB serials, which cannot be re-attached this way.
+func (c *Client) Connect(ctx context.Context) error {
+	if c.serial == "" || !isNetworkSerial(c.serial) {
+		return nil
+	}
+	out, err := c.runner.Run(ctx, c.adbPath, "connect", c.serial)
+	text := strings.TrimSpace(string(out))
+	if err != nil {
+		return fmt.Errorf("adb connect %q: %w: %s", c.serial, err, text)
+	}
+	if strings.Contains(text, "failed") || strings.Contains(text, "cannot") {
+		return fmt.Errorf("adb connect %q: %s", c.serial, text)
+	}
+	return nil
+}
+
+// EnsureConnected verifies the device is present; if not and the serial is a
+// network address, it attempts a single `adb connect` and re-checks. This makes
+// wireless-debugging sessions resilient to idle drops.
+func (c *Client) EnsureConnected(ctx context.Context) error {
+	if err := c.CheckDevice(ctx); err == nil {
+		return nil
+	}
+	if c.serial == "" || !isNetworkSerial(c.serial) {
+		// USB or unspecified serial — nothing to reconnect.
+		return c.CheckDevice(ctx)
+	}
+	if err := c.Connect(ctx); err != nil {
+		return err
+	}
+	return c.CheckDevice(ctx)
+}

@@ -1,42 +1,221 @@
 {
-  "version": "tiktok-placeholder-v1",
+  "version": "tiktok-verified-v2",
   "elements": {
+    "dismiss_sheet": [
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().descriptionContains(\"Close\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Close\")"
+      }
+    ],
+    "agree_terms": [
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().text(\"Agree and continue\").className(\"android.widget.Button\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Agree\").className(\"android.widget.Button\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Agree\")"
+      }
+    ],
+    "allow_button": [
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().text(\"Allow\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Allow\")"
+      }
+    ],
     "sign_up_button": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Sign up\")", "todo": "verify label" }
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Sign up\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().descriptionContains(\"Sign up\")"
+      }
+    ],
+    "sso_continue": [
+      {
+        "by": "xpath",
+        "selector": "//android.view.View[@clickable='true' and .//android.widget.TextView[@text='Continue']]"
+      },
+      {
+        "by": "xpath",
+        "selector": "//android.widget.Button[.//android.widget.TextView[@text='Continue']]"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().text(\"Continue\").className(\"android.widget.Button\")"
+      }
+    ],
+    "sso_account_row": [
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Use your account for TikTok\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Sign in with Google\")"
+      }
+    ],
+    "login_button": [
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().text(\"Login\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Log into\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Login\")"
+      }
     ],
     "use_phone_or_email": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Use phone or email\")", "todo": "verify label" }
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Use phone or email\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"phone or email\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().descriptionContains(\"phone or email\")"
+      }
     ],
     "email_tab": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Email\")", "todo": "verify tab label" }
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Email\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().descriptionContains(\"Email\")"
+      }
     ],
     "birthday_next": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")", "todo": "verify birthday screen" }
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Next\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().descriptionContains(\"Next\")"
+      }
     ],
     "email_field": [
-      { "by": "id", "selector": "com.zhiliaoapp.musically:id/email_field", "todo": "verify resource-id" },
-      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.EditText\")" }
+      {
+        "by": "class name",
+        "selector": "android.widget.EditText"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().className(\"android.widget.EditText\")"
+      }
     ],
     "send_code_button": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Send code\")", "todo": "verify label" }
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().text(\"Continue\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Continue\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Send code\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().descriptionContains(\"Send code\")"
+      }
     ],
     "code_field": [
-      { "by": "id", "selector": "com.zhiliaoapp.musically:id/code_field", "todo": "verify resource-id" }
+      {
+        "by": "class name",
+        "selector": "android.widget.EditText"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().className(\"android.widget.EditText\")"
+      }
     ],
     "next_button": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")", "todo": "verify label" }
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().text(\"Continue\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Continue\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Next\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().descriptionContains(\"Next\")"
+      }
     ],
     "password_field": [
-      { "by": "id", "selector": "com.zhiliaoapp.musically:id/password_field", "todo": "verify resource-id" }
+      {
+        "by": "class name",
+        "selector": "android.widget.EditText"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().className(\"android.widget.EditText\").instance(0)"
+      }
     ],
     "nickname_field": [
-      { "by": "id", "selector": "com.zhiliaoapp.musically:id/nickname_field", "todo": "verify resource-id" }
+      {
+        "by": "class name",
+        "selector": "android.widget.EditText"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().className(\"android.widget.EditText\")"
+      }
     ],
     "skip_button": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Skip\")", "todo": "verify interests/contacts skip" }
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().text(\"Skip\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Skip\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().descriptionContains(\"Skip\")"
+      }
     ],
     "finish_button": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Sign up\")", "todo": "verify final submit label" }
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().textContains(\"Sign up\")"
+      },
+      {
+        "by": "-android uiautomator",
+        "selector": "new UiSelector().descriptionContains(\"Sign up\")"
+      }
     ]
   }
 }

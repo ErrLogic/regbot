@@ -1,11 +1,21 @@
 # Compiled binary
 /regbot
+/regbot-server
+/regbot-worker
 
 # Run artifacts (screenshots, page source, result.json)
 /artifacts/
 
 # Logs
 *.log
+
+# Web UI build + dependencies
+/web/node_modules/
+/web/.svelte-kit/
+/web/build/
+
+# Media uploads
+/uploads/
 
 # Local configuration overrides (never commit real emails/credentials)
 config.local.yaml
@@ -24,5 +34,6 @@ ARCHITECTURE.md
 CLAUDE.md
 PRD.md
 PROMPTS.md
+KNOWN_ISSUES.md
 .claude/
 CLAUDE.local.md

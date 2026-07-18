@@ -64,12 +64,19 @@ func TestSenderMatches(t *testing.T) {
 // sender text and body text are configurable per test.
 func gmailServer(t *testing.T, senderText, bodyText string) *appium.Driver {
 	t.Helper()
+	rowClicked := false
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		path := r.URL.Path
 		switch {
 		case path == "/session":
 			_, _ = io.WriteString(w, `{"value":{"sessionId":"s1","capabilities":{}}}`)
+		case strings.HasSuffix(path, "/click"):
+			// If the row was clicked, mark it so next lookup returns body.
+			if strings.Contains(path, "row") {
+				rowClicked = true
+			}
+			_, _ = io.WriteString(w, `{"value":null}`)
 		case strings.HasSuffix(path, "/text"):
 			switch elementID(path) {
 			case "sender":
@@ -83,14 +90,25 @@ func gmailServer(t *testing.T, senderText, bodyText string) *appium.Driver {
 			writeValue(w, base64.StdEncoding.EncodeToString([]byte{0x89, 0x50}))
 		case strings.HasSuffix(path, "/element"):
 			raw, _ := io.ReadAll(r.Body)
-			id := mapSelectorToID(string(raw))
+			body := string(raw)
+			var id string
+			switch {
+			case strings.Contains(body, "clickable"):
+				id = "row"
+			case strings.Contains(body, "WebView") || strings.Contains(body, "mail_body"):
+				id = "body"
+			case rowClicked:
+				id = "body"
+			default:
+				id = "sender"
+			}
 			if id == "" {
 				w.WriteHeader(http.StatusNotFound)
 				_, _ = io.WriteString(w, `{"value":{"error":"no such element","message":"nope"}}`)
 				return
 			}
 			_, _ = io.WriteString(w, `{"value":{"element-6066-11e4-a52e-4f735466cecf":"`+id+`"}}`)
-		default: // click, actions, execute/sync, press_keycode
+		default:
 			_, _ = io.WriteString(w, `{"value":null}`)
 		}
 	}))
@@ -118,21 +136,6 @@ func elementID(path string) string {
 		}
 	}
 	return ""
-}
-
-func mapSelectorToID(body string) string {
-	switch {
-	case strings.Contains(body, "thread_list_view"):
-		return "list"
-	case strings.Contains(body, "senders"):
-		return "sender"
-	case strings.Contains(body, "conversation_list_item"):
-		return "row"
-	case strings.Contains(body, "mail_body"), strings.Contains(body, "WebView"):
-		return "body"
-	default:
-		return ""
-	}
 }
 
 func gmailLocators(t *testing.T) locators.Map {

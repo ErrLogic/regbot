@@ -73,17 +73,22 @@ func coreServer(t *testing.T, senderText string, failAll bool) string {
 }
 
 func gmailID(value string) string {
+	// Matches the new Gmail locator patterns (textContains, clickable, etc.)
+	// and old resource-ID patterns.
 	switch {
-	case strings.Contains(value, "thread_list_view"):
-		return "list"
-	case strings.Contains(value, "senders"):
-		return "sender"
-	case strings.Contains(value, "conversation_list_item"):
+	case strings.Contains(value, "clickable"):
 		return "row"
-	case strings.Contains(value, "mail_body"), strings.Contains(value, "WebView"):
+	case strings.Contains(value, "WebView"), strings.Contains(value, "mail_body"):
 		return "body"
+	case strings.Contains(value, "thread_list_view"), strings.Contains(value, "search_bar"):
+		return "list"
+	// Message body: scrollable elements without clickable/WebView (comes after above checks).
+	case strings.Contains(value, "scrollable"):
+		return "body"
+	case strings.Contains(value, "senders"), strings.Contains(value, "@"):
+		return "sender"
 	default:
-		return "el"
+		return "el" // platform UI element
 	}
 }
 

@@ -19,6 +19,7 @@ import (
 // registerFlags holds flags scoped to the register command group.
 type registerFlags struct {
 	email string
+	sso   bool
 }
 
 // newRegisterCmd builds the `register` command group and its platform
@@ -34,6 +35,7 @@ func newRegisterCmd(gf *globalFlags) *cobra.Command {
 		},
 	}
 	cmd.PersistentFlags().StringVar(&rf.email, "email", "", "target email address (overrides config)")
+	cmd.PersistentFlags().BoolVar(&rf.sso, "sso", false, "register via Google single-sign-on (TikTok only; skips email OTP)")
 
 	cmd.AddCommand(newPlatformCmd(gf, rf, flows.PlatformInstagram))
 	cmd.AddCommand(newPlatformCmd(gf, rf, flows.PlatformTikTok))
@@ -61,6 +63,9 @@ func runRegister(gf *globalFlags, rf *registerFlags, platform flows.Platform) er
 	if gf.logLevel != "" {
 		cfg.Logging.Level = gf.logLevel
 	}
+	if rf.sso {
+		cfg.Account.UseGoogleSSO = true
+	}
 	if err := cfg.Validate(); err != nil {
 		return usageErrorf("invalid config: %w", err)
 	}
@@ -72,7 +77,8 @@ func runRegister(gf *globalFlags, rf *registerFlags, platform flows.Platform) er
 	defer func() { _ = logger.Sync() }()
 
 	email := rf.email
-	if email == "" {
+	if email == "" && !cfg.Account.UseGoogleSSO {
+		// SSO uses the on-device Google account, so an email is not required.
 		email, err = core.ResolveEmail(cfg.Email)
 		if err != nil {
 			return usageErrorf("resolve email: %w", err)

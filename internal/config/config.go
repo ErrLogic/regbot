@@ -23,6 +23,9 @@ type Config struct {
 	Timeouts TimeoutsConfig `mapstructure:"timeouts"`
 	Paths    PathsConfig    `mapstructure:"paths"`
 	Logging  LoggingConfig  `mapstructure:"logging"`
+	Server   ServerConfig   `mapstructure:"server"`
+	DB       DBConfig       `mapstructure:"db"`
+	Redis    RedisConfig    `mapstructure:"redis"`
 }
 
 // AppiumConfig holds the Appium server endpoint and session timeout.
@@ -67,6 +70,9 @@ type OTPConfig struct {
 type AccountConfig struct {
 	PasswordLength int    `mapstructure:"password_length"`
 	UsernamePrefix string `mapstructure:"username_prefix"`
+	// UseGoogleSSO selects Google single-sign-on registration (currently TikTok)
+	// instead of email + OTP.
+	UseGoogleSSO bool `mapstructure:"use_google_sso"`
 }
 
 // TimeoutsConfig holds UI wait and retry settings.
@@ -86,6 +92,37 @@ type PathsConfig struct {
 type LoggingConfig struct {
 	Level string `mapstructure:"level"`
 	File  string `mapstructure:"file"`
+}
+
+// ServerConfig holds the HTTP API server settings.
+type ServerConfig struct {
+	Host            string        `mapstructure:"host"`
+	Port            int           `mapstructure:"port"`
+	JWTSecret       string        `mapstructure:"jwt_secret"`
+	ShutdownTimeout time.Duration `mapstructure:"shutdown_timeout"`
+}
+
+// DBConfig holds the PostgreSQL connection settings.
+type DBConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+	Database string `mapstructure:"database"`
+	SSLMode  string `mapstructure:"sslmode"`
+}
+
+// DSN returns the PostgreSQL connection string.
+func (d DBConfig) DSN() string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		d.User, d.Password, d.Host, d.Port, d.Database, d.SSLMode)
+}
+
+// RedisConfig holds the Redis connection settings.
+type RedisConfig struct {
+	Addr     string `mapstructure:"addr"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
 }
 
 // Load reads configuration from the YAML file at path, applying environment
@@ -119,7 +156,9 @@ func Load(path string) (Config, error) {
 // in the file.
 func setDefaults(v *viper.Viper) {
 	v.SetDefault("appium.server_url", "http://127.0.0.1:4723")
-	v.SetDefault("appium.new_command_timeout", 120*time.Second)
+	// Long timeout keeps the UiAutomator2 session alive across full flows that
+	// include OTP retrieval waits.
+	v.SetDefault("appium.new_command_timeout", 300*time.Second)
 
 	v.SetDefault("device.platform_name", "Android")
 	v.SetDefault("device.device_name", "emulator-5554")
@@ -142,6 +181,7 @@ func setDefaults(v *viper.Viper) {
 
 	v.SetDefault("account.password_length", 16)
 	v.SetDefault("account.username_prefix", "user")
+	v.SetDefault("account.use_google_sso", false)
 
 	v.SetDefault("timeouts.element_wait", 15*time.Second)
 	v.SetDefault("timeouts.step_retry", 2)
@@ -152,6 +192,22 @@ func setDefaults(v *viper.Viper) {
 
 	v.SetDefault("logging.level", "info")
 	v.SetDefault("logging.file", "./regbot.log")
+
+	v.SetDefault("server.host", "0.0.0.0")
+	v.SetDefault("server.port", 8080)
+	v.SetDefault("server.jwt_secret", "")
+	v.SetDefault("server.shutdown_timeout", 10*time.Second)
+
+	v.SetDefault("db.host", "localhost")
+	v.SetDefault("db.port", 5432)
+	v.SetDefault("db.user", "postgres")
+	v.SetDefault("db.password", "postgres")
+	v.SetDefault("db.database", "regbot")
+	v.SetDefault("db.sslmode", "disable")
+
+	v.SetDefault("redis.addr", "localhost:6379")
+	v.SetDefault("redis.password", "")
+	v.SetDefault("redis.db", 0)
 }
 
 // Validate checks the configuration for internal consistency, returning an error
@@ -167,10 +223,13 @@ func (c Config) Validate() error {
 		return errors.New("appium.new_command_timeout: must be > 0")
 	}
 
-	hasAddress := c.Email.Address != ""
-	hasBase := c.Email.BaseAddress != ""
-	if hasAddress == hasBase {
-		return errors.New("email: exactly one of email.address or email.base_address must be set")
+	// Google SSO uses the on-device account, so an email is not required.
+	if !c.Account.UseGoogleSSO {
+		hasAddress := c.Email.Address != ""
+		hasBase := c.Email.BaseAddress != ""
+		if hasAddress == hasBase {
+			return errors.New("email: exactly one of email.address or email.base_address must be set")
+		}
 	}
 
 	if c.OTP.CodeRegex == "" {

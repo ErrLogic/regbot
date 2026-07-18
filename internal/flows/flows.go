@@ -48,6 +48,9 @@ type FlowConfig struct {
 	Retry RetryPolicy
 	// DryRun stops the flow before the final submission.
 	DryRun bool
+	// UseSSO selects Google single-sign-on registration (via the on-device
+	// Google account) instead of email + OTP. Currently honoured by TikTok.
+	UseSSO bool
 }
 
 // PlatformFlow registers a single account on one platform. The OTP provider is

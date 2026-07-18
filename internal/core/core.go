@@ -18,6 +18,7 @@ import (
 	"github.com/ErrLogic/regbot/internal/flows"
 	"github.com/ErrLogic/regbot/internal/locators"
 	"github.com/ErrLogic/regbot/internal/otp/gmailapp"
+	"github.com/ErrLogic/regbot/internal/otp/notification"
 )
 
 // ADB is the subset of adb operations the orchestrator needs (satisfied by
@@ -25,6 +26,18 @@ import (
 type ADB interface {
 	CheckDevice(ctx context.Context) error
 	IsInstalled(ctx context.Context, pkg string) (bool, error)
+}
+
+// Reconnector is an optional ADB capability: a device that can be re-attached
+// (wireless/TLS). *adb.Client implements it; test fakes may omit it.
+type Reconnector interface {
+	EnsureConnected(ctx context.Context) error
+}
+
+// AppClearer is an optional ADB capability: clearing an app's data. *adb.Client
+// implements it; test fakes may omit it.
+type AppClearer interface {
+	ClearApp(ctx context.Context, pkg string) error
 }
 
 // driverFactory opens an Appium session; overridable in tests.
@@ -75,6 +88,15 @@ func (s *RegistrationService) Register(
 		return flows.Account{}, err
 	}
 
+	// Registration needs the target app on its logged-out welcome screen. Clear
+	// its data first so it always starts fresh, regardless of prior state.
+	if clr, ok := s.adb.(AppClearer); ok {
+		logger.Info("clearing target app data for a fresh registration", zap.String("package", targetPkg))
+		if cerr := clr.ClearApp(ctx, targetPkg); cerr != nil {
+			logger.Warn("clear app data", zap.Error(cerr))
+		}
+	}
+
 	// One Appium session for the whole run.
 	driver, err := s.newDriver(ctx, cfg.Appium.ServerURL, capsFor(cfg, platform, targetPkg))
 	if err != nil {
@@ -92,10 +114,14 @@ func (s *RegistrationService) Register(
 		return flows.Account{}, err
 	}
 
-	// Provider + flow, sharing the driver and artifact directory.
+	// Provider + flow — notification-based OTP with Gmail app fallback.
 	sink := flows.NewArtifactSink(driver, cfg.Paths.ArtifactsDir, runID, logger)
-	provider := gmailapp.New(driver, gmailLoc, gmailConfig(cfg, targetPkg),
+	gmailProvider := gmailapp.New(driver, gmailLoc, gmailConfig(cfg, targetPkg),
 		gmailapp.WithScreenshotSink(pngSink(cfg.Paths.ArtifactsDir, runID)))
+	provider, err := notification.New(cfg.Device.UDID, cfg.OTP.CodeRegex, gmailProvider)
+	if err != nil {
+		return flows.Account{}, fmt.Errorf("create notification provider: %w", err)
+	}
 	flow := flowFor(platform, flowConfig(cfg, dryRun), logger, sink)
 
 	acct, err := flow.Register(ctx, driver, provider, email, targetLoc)
@@ -131,7 +157,13 @@ func (s *RegistrationService) preflight(ctx context.Context, cfg config.Config, 
 	if s.adb == nil {
 		return nil
 	}
-	if err := s.adb.CheckDevice(ctx); err != nil {
+	// If the ADB client can reconnect wireless devices, prefer that: it recovers
+	// from idle TLS drops before failing preflight.
+	if rc, ok := s.adb.(Reconnector); ok {
+		if err := rc.EnsureConnected(ctx); err != nil {
+			return fmt.Errorf("preflight: %w", err)
+		}
+	} else if err := s.adb.CheckDevice(ctx); err != nil {
 		return fmt.Errorf("preflight: %w", err)
 	}
 	for _, pkg := range []string{targetPkg, cfg.Apps.GmailPackage} {
@@ -280,6 +312,7 @@ func flowConfig(cfg config.Config, dryRun bool) flows.FlowConfig {
 		OTPTimeout:     cfg.OTP.WaitTimeout,
 		Retry:          flows.RetryPolicy{Attempts: cfg.Timeouts.StepRetry + 1, Backoff: backoff},
 		DryRun:         dryRun,
+		UseSSO:         cfg.Account.UseGoogleSSO,
 	}
 }
 

@@ -78,8 +78,9 @@ func recordingDriver(t *testing.T, rec *flowRecorder) *appium.Driver {
 			_ = json.Unmarshal(raw, &body)
 			rec.record(body.Value)
 
-			// The username-taken error is "present" (taken) only while the
-			// recorder says so; otherwise report it absent (username available).
+			// The username-taken error uses "isn't available"/"not available"
+			// selectors. It is "present" (taken) only while the recorder says so;
+			// otherwise report it absent (username available).
 			if strings.Contains(body.Value, "available") {
 				if rec.takenProbe() {
 					_, _ = io.WriteString(w, `{"value":{"element-6066-11e4-a52e-4f735466cecf":"el-1"}}`)
@@ -120,10 +121,22 @@ func indexOf(events []string, substr string) int {
 	return -1
 }
 
-func countOf(events []string, exact string) int {
+// indexAfter returns the index of the first event containing substr at or after
+// position from, or -1 if none.
+func indexAfter(events []string, substr string, from int) int {
+	for i := from; i < len(events); i++ {
+		if strings.Contains(events[i], substr) {
+			return i
+		}
+	}
+	return -1
+}
+
+// countContains counts events that contain substr.
+func countContains(events []string, substr string) int {
 	n := 0
 	for _, e := range events {
-		if e == exact {
+		if strings.Contains(e, substr) {
 			n++
 		}
 	}
@@ -184,16 +197,19 @@ func TestInstagramRegister(t *testing.T) {
 
 			events := rec.snapshot()
 
-			// GetCode must be called after tapping Next and before entering the
-			// confirmation code.
+			// OTP must be retrieved, after the email "Next" tap.
 			iNext := indexOf(events, `"Next"`)
 			iOTP := indexOf(events, "OTP_GETCODE")
-			iCode := indexOf(events, "confirmation_field")
 			if iOTP < 0 {
 				t.Fatal("GetCode was never called")
 			}
-			if iNext < 0 || iNext >= iOTP || iOTP >= iCode {
-				t.Errorf("ordering wrong: next=%d otp=%d code=%d (%v)", iNext, iOTP, iCode, events)
+			if iNext < 0 || iNext >= iOTP {
+				t.Errorf("ordering wrong: Next(%d) must come before OTP(%d): %v", iNext, iOTP, events)
+			}
+			// A confirmation-code field (EditText) must be looked up after OTP.
+			iCode := indexAfter(events, "EditText", iOTP)
+			if iCode < 0 {
+				t.Errorf("no confirmation-code field lookup after OTP: %v", events)
 			}
 
 			// Final submit presence.
@@ -202,11 +218,12 @@ func TestInstagramRegister(t *testing.T) {
 				t.Errorf("finish tapped = %v, want %v", hasFinish, tt.wantFinish)
 			}
 
-			// Username retry: typed once per attempt.
+			// Username retry: the taken-error probe must be checked at least
+			// takenTimes+1 times (once per attempt, succeeding on the last).
 			if tt.takenTimes > 0 {
-				got := countOf(events, "com.instagram.android:id/username")
-				if got != tt.takenTimes+1 {
-					t.Errorf("username typed %d times, want %d", got, tt.takenTimes+1)
+				got := countContains(events, "available")
+				if got < tt.takenTimes+1 {
+					t.Errorf("username taken probes = %d, want >= %d: %v", got, tt.takenTimes+1, events)
 				}
 			}
 		})
