@@ -27,12 +27,15 @@ func TapByLocator(ctx context.Context, driver *appium.Driver, loc locators.Map, 
 	return tapByLocator(ctx, driver, loc, name, wait)
 }
 
-// typeByLocator resolves the named element and types text into it.
+// typeByLocator resolves the named element, clears any existing text, and types
+// the new text into it.
 func typeByLocator(ctx context.Context, driver *appium.Driver, loc locators.Map, name, text string, wait time.Duration) error {
 	el, err := loc.Resolve(ctx, driver, name, wait)
 	if err != nil {
 		return fmt.Errorf("type into %q: %w", name, err)
 	}
+	// Clear any pre-filled value first so SendKeys doesn't append.
+	_ = el.Clear(ctx)
 	if err := el.SendKeys(ctx, text); err != nil {
 		return fmt.Errorf("type into %q: %w", name, err)
 	}

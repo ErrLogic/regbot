@@ -3,13 +3,17 @@ package automation
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/ErrLogic/regbot/internal/adb"
 	"github.com/ErrLogic/regbot/internal/appium"
 	"github.com/ErrLogic/regbot/internal/config"
+	"github.com/ErrLogic/regbot/internal/crypto"
 	"github.com/ErrLogic/regbot/internal/db"
+	"github.com/ErrLogic/regbot/internal/flows"
 	"github.com/ErrLogic/regbot/internal/job"
 	"github.com/ErrLogic/regbot/internal/locators"
 	"github.com/ErrLogic/regbot/internal/platform/instagram"
@@ -24,15 +28,15 @@ type LogFunc func(level, step, message string)
 type Service struct {
 	cfg      config.Config
 	sessions *session.Pool
+	accounts *db.AccountStore
 }
 
 // NewService creates an automation service.
-func NewService(cfg config.Config, sessions *session.Pool) *Service {
-	return &Service{cfg: cfg, sessions: sessions}
+func NewService(cfg config.Config, sessions *session.Pool, accounts *db.AccountStore) *Service {
+	return &Service{cfg: cfg, sessions: sessions, accounts: accounts}
 }
 
 // Execute runs a job against the appropriate platform action.
-// Implements job.Executor.
 func (s *Service) Execute(
 	ctx context.Context,
 	j *db.Job,
@@ -40,16 +44,13 @@ func (s *Service) Execute(
 ) error {
 	logFunc("info", "", fmt.Sprintf("Executing %s/%s", j.Platform, j.Type))
 
-	// Resolve device caps.
 	caps := appium.Capabilities{
 		PlatformName:      s.cfg.Device.PlatformName,
 		AutomationName:    s.cfg.Device.AutomationName,
 		DeviceName:        s.cfg.Device.DeviceName,
 		UDID:              j.DeviceSerial,
 		NewCommandTimeout: s.cfg.Appium.NewCommandTimeout,
-		// Registration needs a clean, logged-out app; all other actions run
-		// against the existing logged-in session.
-		NoReset: j.Type != string(job.TypeRegister),
+		NoReset:           j.Type != string(job.TypeRegister),
 	}
 
 	targetPkg, err := s.targetPackage(j.Platform)
@@ -61,105 +62,117 @@ func (s *Service) Execute(
 		caps.AppActivity = s.cfg.Apps.InstagramActivity
 	}
 
-	// Ensure the device is reachable (recovers wireless/TLS idle drops) before
-	// opening a session.
 	adbClient := adb.New(adb.WithSerial(j.DeviceSerial))
 	if err := adbClient.EnsureConnected(ctx); err != nil {
 		logFunc("warn", "", fmt.Sprintf("device reconnect check: %v", err))
 	}
 
-	// Registration needs the target app on its logged-out welcome screen. Clear
-	// its data first so it always starts fresh, regardless of prior state.
 	if j.Type == string(job.TypeRegister) {
+		s.sessions.Release(ctx, j.DeviceSerial)
 		logFunc("info", "", "clearing "+targetPkg+" data for a fresh registration")
 		if err := adbClient.ClearApp(ctx, targetPkg); err != nil {
 			logFunc("warn", "", fmt.Sprintf("clear app data: %v", err))
 		}
+		time.Sleep(2 * time.Second)
 	}
 
-	// Acquire Appium session.
 	driver, err := s.sessions.Acquire(ctx, j.DeviceSerial, caps)
 	if err != nil {
 		return fmt.Errorf("acquire session: %w", err)
 	}
 
-	// Load locators.
 	targetLoc, err := locators.Load(s.cfg.Paths.LocatorsDir, j.Platform)
 	if err != nil {
 		return fmt.Errorf("load locators: %w", err)
 	}
 
-	// Parse params.
 	parsed, err := job.ParseParams(job.Type(j.Type), json.RawMessage(j.Params))
 	if err != nil {
 		return fmt.Errorf("parse params: %w", err)
 	}
 
-	// Dispatch to platform.
 	switch j.Platform {
 	case "instagram":
-		return s.execInstagram(ctx, driver, targetLoc, j.Type, parsed, logFunc)
+		return s.execIG(ctx, driver, targetLoc, j, parsed, logFunc)
 	case "tiktok":
-		return s.execTikTok(ctx, driver, targetLoc, j.Type, parsed, logFunc)
+		return s.execTT(ctx, driver, targetLoc, j, parsed, logFunc)
 	default:
 		return fmt.Errorf("unsupported platform: %s", j.Platform)
 	}
 }
 
-func (s *Service) execInstagram(
-	ctx context.Context, driver *appium.Driver, loc locators.Map,
-	jobType string, params any, logFunc LogFunc,
-) error {
-	switch jobType {
-	case "register":
+func (s *Service) execIG(ctx context.Context, driver *appium.Driver, loc locators.Map, j *db.Job, params any, logFunc LogFunc) error {
+	// Register returns account info that must be persisted.
+	if j.Type == "register" {
 		p := params.(job.RegisterParams)
-		return instagram.Register(ctx, driver, loc, s.cfg, p, logFunc)
+		acct, err := instagram.Register(ctx, driver, loc, s.cfg, p, logFunc)
+		if err != nil {
+			return err
+		}
+		s.saveAccount(ctx, acct, j)
+		return nil
+	}
+	switch j.Type {
 	case "like":
-		p := params.(job.LikeParams)
-		return instagram.LikePost(ctx, driver, loc, p, logFunc)
+		return instagram.LikePost(ctx, driver, loc, params.(job.LikeParams), logFunc)
 	case "comment":
-		p := params.(job.CommentParams)
-		return instagram.CommentPost(ctx, driver, loc, p, logFunc)
+		return instagram.CommentPost(ctx, driver, loc, params.(job.CommentParams), logFunc)
 	case "update_profile":
-		p := params.(job.UpdateProfileParams)
-		return instagram.UpdateProfile(ctx, driver, loc, p, logFunc)
+		return instagram.UpdateProfile(ctx, driver, loc, params.(job.UpdateProfileParams), logFunc)
 	case "create_post":
-		p := params.(job.CreatePostParams)
-		return instagram.CreatePost(ctx, driver, loc, s.cfg, p, logFunc)
+		return instagram.CreatePost(ctx, driver, loc, s.cfg, params.(job.CreatePostParams), logFunc)
 	case "watch_live":
-		p := params.(job.WatchLiveParams)
-		return instagram.WatchLive(ctx, driver, loc, p, logFunc)
+		return instagram.WatchLive(ctx, driver, loc, params.(job.WatchLiveParams), logFunc)
 	default:
-		return fmt.Errorf("unsupported instagram job type: %s", jobType)
+		return fmt.Errorf("unsupported instagram job type: %s", j.Type)
 	}
 }
 
-func (s *Service) execTikTok(
-	ctx context.Context, driver *appium.Driver, loc locators.Map,
-	jobType string, params any, logFunc LogFunc,
-) error {
-	switch jobType {
-	case "register":
+func (s *Service) execTT(ctx context.Context, driver *appium.Driver, loc locators.Map, j *db.Job, params any, logFunc LogFunc) error {
+	if j.Type == "register" {
 		p := params.(job.RegisterParams)
-		return tiktok.Register(ctx, driver, loc, s.cfg, p, logFunc)
-	case "like":
-		p := params.(job.LikeParams)
-		return tiktok.LikePost(ctx, driver, loc, p, logFunc)
-	case "comment":
-		p := params.(job.CommentParams)
-		return tiktok.CommentPost(ctx, driver, loc, p, logFunc)
-	case "update_profile":
-		p := params.(job.UpdateProfileParams)
-		return tiktok.UpdateProfile(ctx, driver, loc, p, logFunc)
-	case "create_post":
-		p := params.(job.CreatePostParams)
-		return tiktok.CreatePost(ctx, driver, loc, s.cfg, p, logFunc)
-	case "watch_live":
-		p := params.(job.WatchLiveParams)
-		return tiktok.WatchLive(ctx, driver, loc, p, logFunc)
-	default:
-		return fmt.Errorf("unsupported tiktok job type: %s", jobType)
+		acct, err := tiktok.Register(ctx, driver, loc, s.cfg, p, logFunc)
+		if err != nil {
+			return err
+		}
+		s.saveAccount(ctx, acct, j)
+		return nil
 	}
+	switch j.Type {
+	case "like":
+		return tiktok.LikePost(ctx, driver, loc, params.(job.LikeParams), logFunc)
+	case "comment":
+		return tiktok.CommentPost(ctx, driver, loc, params.(job.CommentParams), logFunc)
+	case "update_profile":
+		return tiktok.UpdateProfile(ctx, driver, loc, params.(job.UpdateProfileParams), logFunc)
+	case "create_post":
+		return tiktok.CreatePost(ctx, driver, loc, s.cfg, params.(job.CreatePostParams), logFunc)
+	case "watch_live":
+		return tiktok.WatchLive(ctx, driver, loc, params.(job.WatchLiveParams), logFunc)
+	default:
+		return fmt.Errorf("unsupported tiktok job type: %s", j.Type)
+	}
+}
+
+func (s *Service) saveAccount(ctx context.Context, acct *flows.Account, j *db.Job) {
+	if acct == nil || s.accounts == nil || acct.Password == "" {
+		return
+	}
+	key := sha256.Sum256([]byte(s.cfg.Server.JWTSecret))
+	encrypted, err := crypto.Encrypt([]byte(acct.Password), key[:])
+	if err != nil {
+		return
+	}
+	pa := &db.PlatformAccount{
+		Platform:          string(acct.Platform),
+		Email:             acct.Email,
+		Username:          acct.Username,
+		EncryptedPassword: encrypted,
+		Status:            "active",
+		JobID:             j.ID,
+		DeviceSerial:      j.DeviceSerial,
+	}
+	_ = s.accounts.Create(ctx, pa)
 }
 
 func (s *Service) targetPackage(platform string) (string, error) {

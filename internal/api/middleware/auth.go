@@ -13,19 +13,27 @@ type contextKey string
 
 const userIDKey contextKey = "user_id"
 
-// JWTAuth verifies JWT tokens and injects the user ID into the request context.
+// JWTAuth verifies JWT tokens and injects the user ID into the request
+// context. Tokens are accepted either from the Authorization header (for
+// fetch/axios calls) or from a ?token= query parameter (for EventSource SSE
+// connections, which cannot set custom headers).
 func JWTAuth(secret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
-				http.Error(w, `{"error":"missing authorization header"}`, http.StatusUnauthorized)
-				return
+			var tokenStr string
+
+			// 1) Authorization header (fetch/axios).
+			if auth := r.Header.Get("Authorization"); auth != "" {
+				tokenStr = strings.TrimPrefix(auth, "Bearer ")
 			}
 
-			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-			if tokenStr == authHeader {
-				http.Error(w, `{"error":"invalid authorization format"}`, http.StatusUnauthorized)
+			// 2) Query parameter (EventSource SSE).
+			if tokenStr == "" {
+				tokenStr = r.URL.Query().Get("token")
+			}
+
+			if tokenStr == "" {
+				http.Error(w, `{"error":"missing authorization header or ?token= query parameter"}`, http.StatusUnauthorized)
 				return
 			}
 

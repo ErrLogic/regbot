@@ -1,5 +1,5 @@
 {
-  "version": "instagram-verified-v2",
+  "version": "instagram-verified-v4",
   "elements": {
     "create_new_account": [
       { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Get started\")" },
@@ -8,32 +8,56 @@
       { "by": "-android uiautomator", "selector": "new UiSelector().descriptionContains(\"Sign up\")" }
     ],
     "switch_to_email": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().descriptionContains(\"Sign up with email\")" },
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Sign up with email\")" }
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Sign up with email\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().descriptionContains(\"Sign up with email\")" }
     ],
     "email_field": [
       { "by": "class name", "selector": "android.widget.EditText" },
       { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.EditText\")" }
     ],
     "next_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"Next\").className(\"android.widget.Button\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"Next\")" },
       { "by": "-android uiautomator", "selector": "new UiSelector().descriptionContains(\"Next\")" },
       { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")" }
     ],
+    "confirm_email_next": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Confirm\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().descriptionContains(\"Confirm\")" }
+    ],
     "confirmation_code_field": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.EditText\").index(0)" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.EditText\").instance(0)" },
       { "by": "class name", "selector": "android.widget.EditText" }
     ],
     "confirm_code_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"Next\").className(\"android.widget.Button\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"Next\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")" }
+    ],
+    "password_field": [
+      { "by": "id", "selector": "com.instagram.android:id/password", "todo": "verify resource-id" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.EditText\").instance(0)" },
+      { "by": "class name", "selector": "android.widget.EditText" }
+    ],
+    "birthday_field": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"years old\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.EditText\").instance(0)" }
+    ],
+    "birthday_year_picker": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.NumberPicker\").instance(2)" }
+    ],
+    "birthday_set": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"SET\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Set\")" },
+      { "by": "id", "selector": "android:id/button1" }
+    ],
+    "birthday_next": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"Next\").className(\"android.widget.Button\")" },
       { "by": "-android uiautomator", "selector": "new UiSelector().descriptionContains(\"Next\")" },
       { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")" }
     ],
     "full_name_field": [
       { "by": "id", "selector": "com.instagram.android:id/full_name", "todo": "verify resource-id on current IG build" },
-      { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.EditText\").instance(0)" },
-      { "by": "class name", "selector": "android.widget.EditText" }
-    ],
-    "password_field": [
-      { "by": "id", "selector": "com.instagram.android:id/password", "todo": "verify resource-id" },
       { "by": "-android uiautomator", "selector": "new UiSelector().className(\"android.widget.EditText\").instance(0)" },
       { "by": "class name", "selector": "android.widget.EditText" }
     ],
@@ -46,18 +70,25 @@
       { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"isn't available\")" },
       { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"not available\")" }
     ],
-    "birthday_next": [
-      { "by": "-android uiautomator", "selector": "new UiSelector().descriptionContains(\"Next\")" },
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Next\")" }
+    "agree_terms_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"I agree\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"I agree\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Agree and create\")" }
     ],
     "skip_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"Skip\")" },
       { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Skip\")" },
-      { "by": "-android uiautomator", "selector": "new UiSelector().descriptionContains(\"Skip\")" },
-      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Not now\")" }
+      { "by": "-android uiautomator", "selector": "new UiSelector().descriptionContains(\"Skip\")" }
+    ],
+    "not_now_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"No, skip\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"Not now\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Not now\")" },
+      { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"No thanks\")" }
     ],
     "finish_button": [
+      { "by": "-android uiautomator", "selector": "new UiSelector().text(\"I agree\")" },
       { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Sign up\")" },
-      { "by": "-android uiautomator", "selector": "new UiSelector().descriptionContains(\"Sign up\")" },
       { "by": "-android uiautomator", "selector": "new UiSelector().textContains(\"Create account\")" }
     ]
   }

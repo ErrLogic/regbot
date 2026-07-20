@@ -35,37 +35,41 @@ func New(serial string, codeRegex string, gmailFallback otp.OTPProvider) (*Provi
 	}, nil
 }
 
-// GetCode tries ADB notification dump first, then Gmail app.
+// GetCode reads OTP codes using Gmail app first (reads actual email content,
+// always correct), then falls back to ADB notification dump.
 func (p *Provider) GetCode(ctx context.Context, targetEmail string, timeout time.Duration) (string, error) {
 	// If no device serial, skip directly to Gmail fallback (e.g., in tests).
 	if p.serial == "" && p.gmail != nil {
 		return p.gmail.GetCode(ctx, targetEmail, timeout)
 	}
 
-	// Use half the timeout for notification polling, half for Gmail fallback.
-	notifyTimeout := timeout / 2
-	if notifyTimeout < 5*time.Second {
-		notifyTimeout = 5 * time.Second
-	}
-	if notifyTimeout > timeout {
-		notifyTimeout = timeout
-	}
-	notifyDeadline := time.Now().Add(notifyTimeout)
+	// Clear existing notifications to prevent stale codes.
+	p.clearNotifications(ctx)
 
-	// Wait for email to arrive.
-	select {
-	case <-ctx.Done():
-		return "", ctx.Err()
-	case <-time.After(5 * time.Second):
+	// Strategy 1 (primary): Gmail app reads the actual email, always correct.
+	gmailTimeout := timeout * 3 / 4
+	if gmailTimeout < 10*time.Second {
+		gmailTimeout = 10 * time.Second
 	}
+	if p.gmail != nil {
+		code, err := p.gmail.GetCode(ctx, targetEmail, gmailTimeout)
+		if err == nil {
+			return code, nil
+		}
+	}
+
+	// Strategy 2 (fallback): ADB notification dump for speed.
+	remaining := timeout - gmailTimeout
+	if remaining < 5*time.Second {
+		remaining = 5 * time.Second
+	}
+	notifyDeadline := time.Now().Add(remaining)
 
 	for !time.Now().After(notifyDeadline) {
-		// Strategy 1: ADB dumpsys notification.
 		code, err := p.fromADB(ctx)
 		if err == nil {
 			return code, nil
 		}
-
 		select {
 		case <-ctx.Done():
 			return "", ctx.Err()
@@ -73,21 +77,29 @@ func (p *Provider) GetCode(ctx context.Context, targetEmail string, timeout time
 		}
 	}
 
-	// Strategy 2: Fall back to Gmail app with remaining timeout.
-	if p.gmail != nil {
-		remaining := time.Until(time.Now().Add(timeout))
-		if remaining < 5*time.Second {
-			remaining = 5 * time.Second
-		}
-		return p.gmail.GetCode(ctx, targetEmail, remaining)
-	}
-
 	return "", fmt.Errorf("%w: all strategies exhausted", otp.ErrCodeNotFound)
 }
 
-// fromADB runs `adb shell dumpsys notification` and scans for verification codes.
+// clearNotifications dismisses all active notifications so stale OTP codes are
+// not picked up from prior attempts. Uses the public `cmd notification` API
+// (available since Android 12) and falls back to the legacy service call.
+func (p *Provider) clearNotifications(ctx context.Context) {
+	args := func(a ...string) []string {
+		if p.serial != "" {
+			return append([]string{"-s", p.serial}, a...)
+		}
+		return a
+	}
+	// Public API (Android 12+): cancel all notifications.
+	_ = exec.CommandContext(ctx, p.adbPath, args("shell", "cmd", "notification", "cancel-all")...).Run()
+	// Legacy fallback (older Android): dismiss via service call.
+	_ = exec.CommandContext(ctx, p.adbPath, args("shell", "service", "call", "notification", "1")...).Run()
+}
+
+// fromADB runs `adb shell dumpsys notification` and scans for verification
+// codes. Codes are only accepted when they appear near a platform keyword
+// (instagram/tiktok), filtering out unrelated numeric strings.
 func (p *Provider) fromADB(ctx context.Context) (string, error) {
-	// Skip ADB if no device serial (e.g., in tests).
 	if p.serial == "" {
 		return "", fmt.Errorf("no device serial configured")
 	}
@@ -104,30 +116,40 @@ func (p *Provider) fromADB(ctx context.Context) (string, error) {
 	src := string(out)
 	lower := strings.ToLower(src)
 
-	// Check if there's any verification-related notification.
-	hasVerification := strings.Contains(lower, "verification") ||
-		strings.Contains(lower, "code") ||
-		strings.Contains(lower, "login") ||
-		strings.Contains(lower, "sign in") ||
-		strings.Contains(lower, "security") ||
-		strings.Contains(lower, "confirm") ||
-		strings.Contains(lower, "otp") ||
-		strings.Contains(lower, "instagram") ||
-		strings.Contains(lower, "tiktok")
+	// Only consider lines that mention the platform — avoids unrelated codes.
+	for _, line := range strings.Split(src, "\n") {
+		lineLower := strings.ToLower(line)
+		if !strings.Contains(lineLower, "instagram") && !strings.Contains(lineLower, "tiktok") {
+			continue
+		}
+		// Also require a verification keyword on the same line or adjacent context.
+		if !strings.Contains(lineLower, "code") && !strings.Contains(lineLower, "verify") &&
+			!strings.Contains(lineLower, "confirm") && !strings.Contains(lineLower, "security") &&
+			!strings.Contains(lineLower, "login") && !strings.Contains(lineLower, "sign in") {
+			continue
+		}
+		matches := p.re.FindAllString(line, -1)
+		for _, m := range matches {
+			if isLikelyCode(line, m) {
+				return m, nil
+			}
+		}
+	}
 
+	// Fallback: scan all text but still require verification keywords nearby.
+	hasVerification := strings.Contains(lower, "verification") ||
+		strings.Contains(lower, "code") || strings.Contains(lower, "confirm") ||
+		strings.Contains(lower, "otp") || strings.Contains(lower, "login") ||
+		strings.Contains(lower, "sign in") || strings.Contains(lower, "security")
 	if !hasVerification {
 		return "", fmt.Errorf("no verification notification found")
 	}
-
-	// Extract numeric codes.
 	matches := p.re.FindAllString(src, -1)
 	for _, m := range matches {
-		// Filter: must be a standalone code (not part of a date, ID, or phone number).
 		if isLikelyCode(src, m) {
 			return m, nil
 		}
 	}
-
 	return "", fmt.Errorf("no code found in notifications")
 }
 

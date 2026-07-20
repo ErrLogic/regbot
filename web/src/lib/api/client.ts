@@ -3,8 +3,14 @@ import { get } from 'svelte/store';
 
 const BASE = '/api/v1';
 
+function getToken(): string | null {
+  // Svelte store (fast after init), fall back to localStorage (survives
+  // hard-reload / store-not-yet-hydrated race).
+  return get(token) || localStorage.getItem('token');
+}
+
 async function request<T>(method: string, path: string, body?: any): Promise<T> {
-  const t = get(token);
+  const t = getToken();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (t) headers['Authorization'] = `Bearer ${t}`;
 

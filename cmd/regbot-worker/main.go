@@ -43,12 +43,13 @@ func main() {
 
 	jobStore := db.NewJobStore(pool)
 	jobLogStore := db.NewJobLogStore(pool)
+	accountStore := db.NewAccountStore(pool)
 	deviceStore := db.NewDeviceStore(pool)
 
 	adbClient := adb.New()
 	deviceMgr := device.NewManager(adbClient, deviceStore)
 	sessionPool := session.NewPool(cfg.Appium)
-	autoSvc := automation.NewService(cfg, sessionPool)
+	autoSvc := automation.NewService(cfg, sessionPool, accountStore)
 
 	_ = deviceMgr
 	_ = jobLogStore

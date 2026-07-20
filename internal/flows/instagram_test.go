@@ -212,8 +212,9 @@ func TestInstagramRegister(t *testing.T) {
 				t.Errorf("no confirmation-code field lookup after OTP: %v", events)
 			}
 
-			// Final submit presence.
-			hasFinish := indexOf(events, `"Sign up"`) >= 0
+			// Final submit presence: agreeing to the terms ("I agree") is what
+			// creates the account, so it is skipped on a dry run.
+			hasFinish := indexOf(events, "I agree") >= 0
 			if hasFinish != tt.wantFinish {
 				t.Errorf("finish tapped = %v, want %v", hasFinish, tt.wantFinish)
 			}

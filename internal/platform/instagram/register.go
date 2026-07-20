@@ -19,9 +19,8 @@ import (
 const defaultProbeWait = 2 * time.Second
 
 // Register drives the Instagram email-registration flow by delegating to the
-// shared, real-device-verified flows.InstagramFlow (which handles the
-// switch-to-email step, OTP retrieval, username retry, and final submit). This
-// keeps the worker path and the CLI path on a single implementation.
+// shared, real-device-verified flows.InstagramFlow. Returns the created account
+// on success so the caller can persist it.
 func Register(
 	ctx context.Context,
 	driver *appium.Driver,
@@ -29,14 +28,18 @@ func Register(
 	cfg config.Config,
 	params job.RegisterParams,
 	logFunc func(string, string, string),
-) error {
+) (*flows.Account, error) {
 	flow := flows.InstagramFlow{
 		Cfg:    flowConfigFrom(cfg, params),
 		Logger: zap.NewNop(),
 	}
 	provider := otpProvider(cfg, driver)
-	_, err := flow.Register(ctx, driver, provider, params.Email, loc)
-	return err
+	acct, err := flow.Register(ctx, driver, provider, params.Email, loc)
+	if err != nil {
+		return nil, err
+	}
+	logFunc("info", "", "account created: "+acct.Username)
+	return &acct, nil
 }
 
 // flowConfigFrom builds a flows.FlowConfig from the run config and job params.

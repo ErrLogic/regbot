@@ -25,9 +25,7 @@ var Tap = flows.TapByLocator
 var Type = flows.TypeByLocator
 
 // Register drives the TikTok registration flow by delegating to the shared,
-// real-device-verified flows.TikTokFlow (which handles onboarding, tutorial
-// overlays, profile navigation, email OTP, and Google SSO). This keeps the
-// worker path and the CLI path on a single implementation.
+// real-device-verified flows.TikTokFlow. Returns the created account on success.
 func Register(
 	ctx context.Context,
 	driver *appium.Driver,
@@ -35,14 +33,18 @@ func Register(
 	cfg config.Config,
 	params job.RegisterParams,
 	logFunc func(string, string, string),
-) error {
+) (*flows.Account, error) {
 	flow := flows.TikTokFlow{
 		Cfg:    flowConfigFrom(cfg, params),
 		Logger: loggerFor(logFunc),
 	}
 	provider := otpProvider(cfg, driver)
-	_, err := flow.Register(ctx, driver, provider, params.Email, loc)
-	return err
+	acct, err := flow.Register(ctx, driver, provider, params.Email, loc)
+	if err != nil {
+		return nil, err
+	}
+	logFunc("info", "", "account created: "+acct.Username)
+	return &acct, nil
 }
 
 // flowConfigFrom builds a flows.FlowConfig from the run config and job params.

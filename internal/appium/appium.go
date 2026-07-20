@@ -171,13 +171,43 @@ func (e *Element) Click(ctx context.Context) error {
 	return nil
 }
 
-// SendKeys types text into the element.
+// Clear clears the element's text content before typing. Uses the W3C
+// WebDriver /clear endpoint.
+func (e *Element) Clear(ctx context.Context) error {
+	if err := e.driver.do(ctx, http.MethodPost, e.path("/clear"), nil, nil); err != nil {
+		return fmt.Errorf("clear: %w", err)
+	}
+	return nil
+}
+
+// SendKeys types text into the element. Only the required "text" parameter is
+// sent — the legacy "value" character array is omitted because some Appium
+// drivers process both and would type the string twice. Callers should Clear()
+// first if the field may already contain text.
 func (e *Element) SendKeys(ctx context.Context, text string) error {
-	body := map[string]any{"text": text, "value": strings.Split(text, "")}
+	body := map[string]any{"text": text}
 	if err := e.driver.do(ctx, http.MethodPost, e.path("/value"), body, nil); err != nil {
 		return fmt.Errorf("send keys: %w", err)
 	}
 	return nil
+}
+
+// Rect is an element's bounding box in device pixels.
+type Rect struct {
+	X      int `json:"x"`
+	Y      int `json:"y"`
+	Width  int `json:"width"`
+	Height int `json:"height"`
+}
+
+// Rect returns the element's bounding box via the W3C /rect endpoint. Useful for
+// gesture targets (e.g. scrolling a native spinner) that need coordinates.
+func (e *Element) Rect(ctx context.Context) (Rect, error) {
+	var r Rect
+	if err := e.driver.do(ctx, http.MethodGet, e.path("/rect"), nil, &r); err != nil {
+		return Rect{}, fmt.Errorf("element rect: %w", err)
+	}
+	return r, nil
 }
 
 // GetText returns the element's visible text.

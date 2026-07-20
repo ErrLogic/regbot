@@ -1,6 +1,8 @@
 package flows
 
 // InstagramLocatorNames are the element names the Instagram flow depends on.
+// Order mirrors the verified signup wizard: welcome → email → OTP → password →
+// birthday → name → username → terms → post-signup interstitials.
 var InstagramLocatorNames = []string{
 	"create_new_account",
 	"switch_to_email",
@@ -8,12 +10,16 @@ var InstagramLocatorNames = []string{
 	"next_button",
 	"confirmation_code_field",
 	"confirm_code_button",
-	"full_name_field",
 	"password_field",
+	"birthday_year_picker",
+	"birthday_set",
+	"birthday_next",
+	"full_name_field",
 	"username_field",
 	"username_taken_error",
-	"birthday_next",
+	"agree_terms_button",
 	"skip_button",
+	"not_now_button",
 	"finish_button",
 }
 
